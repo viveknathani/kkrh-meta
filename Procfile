@@ -1,1 +1,1 @@
-web: bin/kkrh-meta
+web: bin/server
