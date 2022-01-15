@@ -1,0 +1,4 @@
+github.com/bmizerany/lpx v0.0.0-20130503172629-af85cf24c156 h1:0ywL+47/N2nSZUMM4VUYMZus+FPVfXbbXb2qhGpzsS8=
+github.com/bmizerany/lpx v0.0.0-20130503172629-af85cf24c156/go.mod h1:sBo9Xky5Lv+sFCp5t1OH7lwY/qRcheGrbjsvb0FdUwM=
+github.com/heroku/drain v0.0.0-20211012143232-cb33207a410f h1:NHfyUNL22wxlVtk5jST4iWwmBB6IMXc2TitG3HJy0as=
+github.com/heroku/drain v0.0.0-20211012143232-cb33207a410f/go.mod h1:cV9TQCqHhScQasTYEyS5dG938ns/0LEh46sLooV0PfU=
