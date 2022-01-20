@@ -100,8 +100,7 @@ func computeAvgRequestsPerDay(requests map[string][]interface{}) float64 {
 	}
 
 	var result float64 = 0
-	for k, v := range daily {
-		fmt.Println(k, v)
+	for _, v := range daily {
 		result += (float64(v) / float64(len(daily)))
 	}
 
@@ -154,6 +153,9 @@ func computeTimeSpentPerComponent(requests map[string][]interface{}) (float64, f
 	var one float64 = 0
 	var two float64 = 0
 	var three float64 = 0
+
+	cacheCount := 0
+	dbCount := 0
 	for _, arr := range requests {
 
 		var databaseStartTime float64 = math.MaxFloat64
@@ -163,6 +165,8 @@ func computeTimeSpentPerComponent(requests map[string][]interface{}) (float64, f
 		var appStartTime float64 = math.MaxFloat64
 		var appStopTime float64 = 0
 
+		hasCache := false
+		hasDB := false
 		for _, store := range arr {
 			temp := store.(map[string]interface{})
 			if temp == nil {
@@ -175,6 +179,7 @@ func computeTimeSpentPerComponent(requests map[string][]interface{}) (float64, f
 				tss := ts.(float64)
 
 				if strings.HasPrefix(msg, "cache:") {
+					hasCache = hasCache || true
 					res1 := big.NewFloat(cacheStartTime).Cmp(big.NewFloat(tss))
 					res2 := big.NewFloat(cacheStopTime).Cmp(big.NewFloat(tss))
 					if res1 == 1 {
@@ -184,6 +189,7 @@ func computeTimeSpentPerComponent(requests map[string][]interface{}) (float64, f
 						cacheStopTime = tss
 					}
 				} else if strings.HasPrefix(msg, "database:") {
+					hasDB = hasDB || true
 					res1 := big.NewFloat(databaseStartTime).Cmp(big.NewFloat(tss))
 					res2 := big.NewFloat(databaseStopTime).Cmp(big.NewFloat(tss))
 					if res1 == 1 {
@@ -205,21 +211,32 @@ func computeTimeSpentPerComponent(requests map[string][]interface{}) (float64, f
 			}
 		}
 
+		if hasCache {
+			cacheCount++
+		}
+
+		if hasDB {
+			dbCount++
+		}
+
 		app := appStopTime - appStartTime
 		db := databaseStopTime - databaseStartTime
 		cache := cacheStopTime - cacheStartTime
 
 		if app >= 0 {
-			one += app / float64(len(requests))
+			one += app
 		}
 		if db >= 0 {
-			two += db / float64(len(requests))
+			two += db
 		}
 		if cache >= 0 {
-			three += cache / float64(len(requests))
+			three += cache
 		}
 	}
 
+	one /= float64(len(requests))
+	two /= float64(dbCount)
+	three /= float64(cacheCount)
 	return one, two, three
 }
 
@@ -247,9 +264,20 @@ func main() {
 		}
 	}
 
-	fmt.Println(computeErrorRate(store))
-	fmt.Println(computeAvgProcessingTime(store))
-	fmt.Println(computeAvgRequestsPerDay(store))
-	fmt.Println(computeEndpointDistribution(store))
-	fmt.Println(computeTimeSpentPerComponent(store))
+	fmt.Printf("Total requests:%d\n", len(store))
+	fmt.Printf("Error rate:%f%%\n", computeErrorRate(store))
+	fmt.Printf("Avg processing time: %fms.\n", computeAvgProcessingTime(store))
+	fmt.Printf("Avg requests per day: %f\n", computeAvgRequestsPerDay(store))
+
+	fmt.Println()
+	dist := computeEndpointDistribution(store)
+	for k, v := range dist {
+		fmt.Printf("Calls to %s:%d\n", k, v)
+	}
+	fmt.Println()
+
+	app, db, cache := computeTimeSpentPerComponent(store)
+	fmt.Printf("Avg time spent in app: %fms\n", app)
+	fmt.Printf("Avg time spent in db: %fms\n", db)
+	fmt.Printf("Avg time spent in cache: %fms\n", cache)
 }
