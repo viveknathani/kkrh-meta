@@ -149,7 +149,6 @@ func main() {
 
 	done := make(chan bool)
 	go receiveLogs(bucket, false)
-	go doHealthCheck(done, healthCheckURL)
 
 	err := http.ListenAndServe(":"+port, nil)
 	done <- true
